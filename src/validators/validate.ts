@@ -18,7 +18,7 @@ const validateRequest = (schema: Schema) => {
         status: StatusCodes.BAD_REQUEST,
         message: `${splitInstancePath[splitInstancePath.length - 1]} ${
           validate.errors![0].message
-        }`,
+        }`.trim(),
       };
       return next(err);
     }
