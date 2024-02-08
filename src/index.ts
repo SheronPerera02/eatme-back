@@ -5,7 +5,9 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import authRouter from "./routers/auth";
+import menuRouter from "./routers/menu";
 import db from "./config/db";
+import authGuard from "./middlewares/auth-guard";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -15,6 +17,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use("/api/auth", authRouter);
+app.use("/api/menu", authGuard, menuRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res
