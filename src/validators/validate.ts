@@ -11,7 +11,7 @@ ajvErrors(ajv);
 const validateRequest = (schema: Schema) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const validate = ajv.compile(schema);
-    const isValid = validate(req.body);
+    const isValid = validate({ body: req.body, query: req.query });
     if (!isValid) {
       const splitInstancePath = validate.errors![0].instancePath.split("/");
       const err = {

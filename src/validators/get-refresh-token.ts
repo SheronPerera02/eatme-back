@@ -1,21 +1,19 @@
 import { Schema } from "ajv";
 
-const signinSchema: Schema = {
+const getRefreshTokenSchema: Schema = {
   type: "object",
   properties: {
     body: {
       type: "object",
       properties: {
-        email: {
+        refreshToken: {
           type: "string",
-          format: "email",
         },
-        password: { type: "string" },
       },
-      required: ["email", "password"],
+      required: ["refreshToken"],
     },
   },
   required: ["body"],
 };
 
-export default signinSchema;
+export default getRefreshTokenSchema;

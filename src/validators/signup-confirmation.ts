@@ -1,21 +1,21 @@
 import { Schema } from "ajv";
 
-const signinSchema: Schema = {
+const signupConfirmationSchema: Schema = {
   type: "object",
   properties: {
-    body: {
+    query: {
       type: "object",
       properties: {
+        token: { type: "string" },
         email: {
           type: "string",
           format: "email",
         },
-        password: { type: "string" },
       },
-      required: ["email", "password"],
+      required: ["token", "email"],
     },
   },
-  required: ["body"],
+  required: ["query"],
 };
 
-export default signinSchema;
+export default signupConfirmationSchema;

@@ -1,13 +1,13 @@
 import { StatusCodes } from "http-status-codes";
 import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { createTransport } from "nodemailer";
 import crypto from "crypto";
 import db from "../config/db";
 import { Op } from "sequelize";
+import { hoursToMillis } from "../util";
+import { decodeToken, generateTokens } from "../util/token";
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
 const APP_BASE = process.env.APP_BASE;
 const API_BASE = process.env.API_BASE;
 
@@ -20,12 +20,13 @@ const transporter = createTransport({
   },
 });
 
-const signin = async (req: Request, res: Response) => {
+const signin = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
   const user = await db.user.findOne({
     where: {
       email,
     },
+    include: [db.userAuth],
   });
   if (!user)
     return res.status(StatusCodes.BAD_REQUEST).json({
@@ -42,16 +43,19 @@ const signin = async (req: Request, res: Response) => {
       message: "Invalid credentials",
     });
 
-  const accessToken = jwt.sign({ email }, JWT_SECRET, {
-    expiresIn: "1d",
-  });
+  try {
+    const { accessToken, refreshToken } = await generateTokens(user);
 
-  res.status(StatusCodes.OK).json({
-    message: "Signed in successfully",
-    data: {
-      accessToken,
-    },
-  });
+    res.status(StatusCodes.OK).json({
+      message: "Signed in successfully",
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
 };
 
 const signup = async (req: Request, res: Response, next: NextFunction) => {
@@ -83,7 +87,7 @@ const signup = async (req: Request, res: Response, next: NextFunction) => {
 
   const createdRegistration = await db.registration.create({
     token,
-    expiration: new Date(new Date().getTime() + 1000 * 60 * 60 * 2),
+    expiration: new Date(new Date().getTime() + hoursToMillis(2)),
     email,
     password: hashedPassword,
   });
@@ -116,10 +120,6 @@ const signupConfirmation = async (
   next: NextFunction,
 ) => {
   const { token, email } = req.query;
-  if (!token || !email)
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ message: "Missing confirmation credentials" });
 
   const registration = await db.registration.findOne({
     where: {
@@ -144,19 +144,55 @@ const signupConfirmation = async (
     where: { email: registration.getDataValue("email") },
   });
 
-  const accessToken = jwt.sign(
-    { email: createdUser.getDataValue("email") },
-    JWT_SECRET,
-    {
-      expiresIn: "1d",
-    },
-  );
+  try {
+    const { accessToken, refreshToken } = await generateTokens(createdUser);
 
-  res.redirect(`${APP_BASE}?accessToken=${accessToken}`);
+    res.redirect(
+      `${APP_BASE}?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+    );
+  } catch (e) {
+    next(e);
+  }
+};
+
+const getRefreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { refreshToken: clientRefreshToken } = req.body;
+
+  try {
+    const { user } = await decodeToken(clientRefreshToken);
+
+    const userAuth = user.getDataValue("userAuth");
+
+    if (
+      !userAuth ||
+      userAuth.getDataValue("expiration").getTime() < new Date().getTime()
+    )
+      return next({
+        status: StatusCodes.UNAUTHORIZED,
+        message: "Please signin again",
+      });
+
+    const { accessToken, refreshToken } = await generateTokens(user);
+
+    res.status(StatusCodes.CREATED).json({
+      message: "Token refreshed successfully",
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
 };
 
 export default {
   signup,
   signin,
   signupConfirmation,
+  getRefreshToken,
 };

@@ -1,7 +1,15 @@
-import { DataTypes, Sequelize } from "sequelize";
+import { DataTypes, Model, Sequelize } from "sequelize";
+import { UserAuth } from "./user-auth";
+
+export type User = Model<{
+  id?: number;
+  email: string;
+  password: string;
+  userAuth?: UserAuth;
+}>;
 
 const user = (sequelize: Sequelize) => {
-  return sequelize.define("user", {
+  return sequelize.define<User>("user", {
     email: {
       type: DataTypes.STRING,
       validate: {
