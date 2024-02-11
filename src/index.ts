@@ -8,6 +8,7 @@ import authRouter from "./routers/auth";
 import menuRouter from "./routers/menu";
 import db from "./config/db";
 import authGuard from "./middlewares/auth-guard";
+import { seedsOrders } from "./util/seed";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -29,10 +30,17 @@ db.sequelize
   .authenticate()
   .then(() => {
     console.log("Database connected");
-    return db.sequelize.sync({ force: false });
+    return db.sequelize.sync({ force: true });
   })
   .then(() => {
     console.log("Database synced");
-    app.listen(PORT, () => console.log(`API accessible on ${API_BASE}`));
+    app.listen(PORT, async () => {
+      console.log(`API accessible on ${API_BASE}`);
+      await db.user.create({
+        email: "enosh.sheron@gmail.com",
+        password: "123456",
+      });
+      seedsOrders();
+    });
   })
   .catch((err) => console.log(err));
