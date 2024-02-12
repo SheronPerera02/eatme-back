@@ -6,6 +6,7 @@ import cors from "cors";
 import { StatusCodes } from "http-status-codes";
 import authRouter from "./routers/auth";
 import menuRouter from "./routers/menu";
+import reportRouter from "./routers/report";
 import db from "./config/db";
 import authGuard from "./middlewares/auth-guard";
 import { seedsOrders } from "./util/seed";
@@ -19,6 +20,7 @@ app.use(cors());
 
 app.use("/api/auth", authRouter);
 app.use("/api/menu", authGuard, menuRouter);
+app.use("/api/report", authGuard, reportRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res
@@ -30,7 +32,7 @@ db.sequelize
   .authenticate()
   .then(() => {
     console.log("Database connected");
-    return db.sequelize.sync({ force: true });
+    return db.sequelize.sync({ force: false });
   })
   .then(() => {
     console.log("Database synced");
