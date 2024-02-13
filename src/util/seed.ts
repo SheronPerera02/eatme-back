@@ -1,7 +1,14 @@
 import { faker } from "@faker-js/faker";
 import db from "../config/db";
+import { OrderStatus } from "../enum";
 
 export const seedsOrders = async () => {
+  const statuses = [
+    OrderStatus.complete,
+    OrderStatus.processing,
+    OrderStatus.pending,
+  ];
+
   try {
     const numItemsToCreate = 20;
 
@@ -23,6 +30,7 @@ export const seedsOrders = async () => {
     for (let i = 0; i < 100; i++) {
       const order = await db.order.create({
         date: faker.date.past(),
+        status: faker.helpers.arrayElement(statuses) as OrderStatus,
         userId: user.getDataValue("id"),
       });
 

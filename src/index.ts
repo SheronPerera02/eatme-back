@@ -7,6 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import authRouter from "./routers/auth";
 import menuRouter from "./routers/menu";
 import reportRouter from "./routers/report";
+import orderRouter from "./routers/order";
 import db from "./config/db";
 import authGuard from "./middlewares/auth-guard";
 import { seedsOrders } from "./util/seed";
@@ -21,6 +22,7 @@ app.use(cors());
 app.use("/api/auth", authRouter);
 app.use("/api/menu", authGuard, menuRouter);
 app.use("/api/report", authGuard, reportRouter);
+app.use("/api/orders", authGuard, orderRouter);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   res
