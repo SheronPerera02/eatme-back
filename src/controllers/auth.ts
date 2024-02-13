@@ -44,12 +44,15 @@ const signin = async (req: Request, res: Response, next: NextFunction) => {
     });
 
   try {
-    const { accessToken, refreshToken } = await generateTokens(user);
+    const { accessToken, expiration, refreshToken } = await generateTokens(
+      user,
+    );
 
     res.status(StatusCodes.OK).json({
       message: "Signed in successfully",
       data: {
         accessToken,
+        expiration,
         refreshToken,
       },
     });
@@ -145,10 +148,12 @@ const signupConfirmation = async (
   });
 
   try {
-    const { accessToken, refreshToken } = await generateTokens(createdUser);
+    const { accessToken, expiration, refreshToken } = await generateTokens(
+      createdUser,
+    );
 
     res.redirect(
-      `${APP_BASE}?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+      `${APP_BASE}?accessToken=${accessToken}&expiration=${expiration}&refreshToken=${refreshToken}`,
     );
   } catch (e) {
     next(e);
@@ -176,12 +181,15 @@ const getRefreshToken = async (
         message: "Please signin again",
       });
 
-    const { accessToken, refreshToken } = await generateTokens(user);
+    const { accessToken, expiration, refreshToken } = await generateTokens(
+      user,
+    );
 
     res.status(StatusCodes.CREATED).json({
       message: "Token refreshed successfully",
       data: {
         accessToken,
+        expiration,
         refreshToken,
       },
     });

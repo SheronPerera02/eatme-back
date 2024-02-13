@@ -11,6 +11,7 @@ export const generateTokens = async (user: User) => {
   const accessToken = jwt.sign({ email }, JWT_SECRET, {
     expiresIn: "1h",
   });
+  const accessTokenExpiration = new Date().getTime() + hoursToMillis(1);
   const refreshToken = jwt.sign({ email }, JWT_SECRET, {
     expiresIn: "1d",
   });
@@ -32,7 +33,7 @@ export const generateTokens = async (user: User) => {
   if (!userAuth) {
     throw new Error();
   }
-  return { accessToken, refreshToken };
+  return { accessToken, expiration: accessTokenExpiration, refreshToken };
 };
 
 export const decodeToken = (token: string) => {
