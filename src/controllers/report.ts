@@ -75,4 +75,34 @@ const getTopSellingMenuItems = async (
   });
 };
 
-export default { getTotalSales, getTopSellingMenuItems };
+const getAverageOrderValue = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { startDate, endDate } = req.query;
+  const query = `
+    SELECT AVG(total_order_value) AS average
+    FROM (
+        SELECT SUM(orderItems.quantity * items.price) AS total_order_value
+        FROM orders
+        JOIN orderItems ON orders.id = orderItems.orderId
+        JOIN items ON orderItems.itemId = items.id
+        WHERE orders.date >= '${startDate}' AND orders.date <= '${endDate}'
+        GROUP BY orders.id
+    ) AS order_totals;
+  `;
+
+  const average = await db.sequelize.query<{ average: number }>(query, {
+    type: QueryTypes.SELECT,
+  });
+
+  res.status(StatusCodes.OK).json({
+    message: "Aqcuired successfully",
+    data: {
+      average: average[0].average.toFixed(2),
+    },
+  });
+};
+
+export default { getTotalSales, getTopSellingMenuItems, getAverageOrderValue };
