@@ -11,4 +11,6 @@ router.get(
   reportController.getTotalSales,
 );
 
+router.get("/top-selling", reportController.getTopSellingMenuItems);
+
 export default router;

@@ -38,11 +38,11 @@ db.sequelize
     console.log("Database synced");
     app.listen(PORT, async () => {
       console.log(`API accessible on ${API_BASE}`);
-      await db.user.create({
-        email: "enosh.sheron@gmail.com",
-        password: "123456",
-      });
-      seedsOrders();
+      // await db.user.create({
+      //   email: "enosh.sheron@gmail.com",
+      //   password: "123456",
+      // });
+      // seedsOrders();
     });
   })
   .catch((err) => console.log(err));

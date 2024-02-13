@@ -49,4 +49,30 @@ const getTotalSales = async (
   });
 };
 
-export default { getTotalSales };
+const getTopSellingMenuItems = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const query = `
+    SELECT items.name AS productName, SUM(orderItems.quantity) AS totalSoldQty
+    FROM orderItems
+    JOIN items ON orderItems.itemId = items.id
+    GROUP BY items.name
+    ORDER BY totalSoldQty DESC
+    LIMIT 3;
+  `;
+
+  const topSellingMenuItems = await db.sequelize.query(query, {
+    type: QueryTypes.SELECT,
+  });
+
+  res.status(StatusCodes.OK).json({
+    message: "Aqcuired successfully",
+    data: {
+      items: topSellingMenuItems,
+    },
+  });
+};
+
+export default { getTotalSales, getTopSellingMenuItems };
